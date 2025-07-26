@@ -1,0 +1,69 @@
+# ---------------------------
+# IDE and Editor Config Files
+# ---------------------------
+
+# Visual Studio & VS Code
+.vs/
+*.sln
+*.csproj
+*.csproj.user
+*.suo
+*.user
+
+# JetBrains Rider / IntelliJ
+.idea/
+*.unityproj
+*.booproj
+*.pidb
+*.tmproj
+
+# ---------------------------
+# Unity Project Generated
+# ---------------------------
+
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+UserSettings/
+MemoryCaptures/
+
+# Unity Collaborate
+.collab/
+
+# Crash logs
+sysinfo.txt
+
+# ---------------------------
+# Build Outputs
+# ---------------------------
+
+# Ignore local builds unless deploying (e.g., for GitHub Pages or Telegram)
+# Comment out if you want to include WebGL build in repo
+# Build/
+# Builds/
+
+# ---------------------------
+# Operating System
+# ---------------------------
+
+.DS_Store
+Thumbs.db
+
+# ---------------------------
+# Local or Temp Files
+# ---------------------------
+
+*.local
+*.swp
+*.tmp
+*.bak
+*.old
+
+# ---------------------------
+# Node / Web Backend (Optional)
+# ---------------------------
+
+node_modules/
+.env
+.env.*

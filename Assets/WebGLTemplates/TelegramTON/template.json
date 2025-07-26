@@ -1,0 +1,5 @@
+{
+    "template_name": "TelegramTON",
+    "build_target": "WebGL",
+    "default": false
+}

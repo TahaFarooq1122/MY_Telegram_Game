@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MyTONGame</title>
+
+    <!-- Telegram & TON SDKs -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background: #000;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="unity-canvas"></canvas>
+    <script src="build/docs.loader.js"></script>
+
+    <script>
+        // ✅ Telegram Score Posting
+        window.TelegramGameProxy = {
+            postScore: function (score) {
+                if (Telegram && Telegram.WebApp) {
+                    Telegram.WebApp.sendData(JSON.stringify({ type: "score", value: score }));
+                    console.log("✅ Score sent to Telegram:", score);
+                } else {
+                    console.warn("❌ Telegram WebApp not available.");
+                }
+            }
+        };
+
+        // ✅ TON Wallet Integration
+        window.TonWallet = {
+            tonConnect: null,
+            connectedWallet: null,
+
+            init: function () {
+                this.tonConnect = new TON_CONNECT_UI.TonConnectUI({
+                    manifestUrl: window.location.origin + '/tonconnect-manifest.json'
+                });
+            },
+
+            connect: async function () {
+                try {
+                    await this.tonConnect.connectWallet();
+                    const wallet = await this.tonConnect.wallet;
+                    if (wallet && wallet.account) {
+                        this.connectedWallet = wallet.account.address;
+                        alert("✅ Wallet Connected: " + this.connectedWallet);
+                        SendPlayerInfoToUnity();
+                    } else {
+                        alert("❌ Wallet connection failed.");
+                    }
+                } catch (e) {
+                    alert("❌ Wallet connection error: " + e.message);
+                }
+            },
+
+            getAddress: function () {
+                return this.connectedWallet || "";
+            },
+
+            sendReward: async function (address) {
+                alert("🎁 Sending reward to: " + address);
+                console.log("🎯 Reward sent to:", address);
+                // TODO: Call backend or smart contract here
+            }
+        };
+
+        // ✅ Unity-callable JS functions
+        window.ConnectWalletJS = function () {
+            window.TonWallet?.connect?.();
+        };
+
+        window.GetWalletAddressJS = function () {
+            const address = window.TonWallet.getAddress();
+            if (typeof unityInstance !== 'undefined') {
+                unityInstance.SendMessage('TONManager', 'OnWalletAddressReceived', address);
+            }
+        };
+
+        window.SendRewardJS = function (address) {
+            window.TonWallet?.sendReward?.(address);
+        };
+
+        window.PostScoreJS = function (score) {
+            window.TelegramGameProxy?.postScore?.(score);
+        };
+
+        // ✅ Send player info to Unity
+        function SendPlayerInfoToUnity() {
+            const user = Telegram?.WebApp?.initDataUnsafe?.user;
+            const username = user?.username || ("user_" + user?.id || "guest");
+            const email = username + "@telegram";
+            const wallet = window.TonWallet.getAddress() || "not_connected";
+
+            const playerInfo = {
+                email: email,
+                wallet: wallet
+            };
+
+            if (typeof unityInstance !== 'undefined') {
+                unityInstance.SendMessage("GameManager", "SetPlayerInfo", JSON.stringify(playerInfo));
+                console.log("📤 Sent player info to Unity:", playerInfo);
+            } else {
+                console.warn("⚠️ Unity instance not available.");
+            }
+        }
+
+        // ✅ Unity Loader Initialization
+        let unityInstance = null;
+
+        window.addEventListener("load", () => {
+            window.TonWallet.init();
+
+            if (Telegram && Telegram.WebApp) {
+                Telegram.WebApp.ready();
+            }
+
+            const buildUrl = "build";
+            const loaderUrl = buildUrl + "/docs.loader.js";
+            const config = {
+                dataUrl: buildUrl + "/docs.data.unityweb",
+                frameworkUrl: buildUrl + "/docs.framework.js.unityweb",
+                codeUrl: buildUrl + "/docs.wasm.unityweb",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "YourCompany",
+                productName: "MyTONGame",
+                productVersion: "1.0"
+            };
+
+            const canvas = document.querySelector("#unity-canvas");
+
+            createUnityInstance(canvas, config, (progress) => {
+                // Optional loading progress logic
+            }).then((instance) => {
+                unityInstance = instance;
+                console.log("✅ Unity loaded.");
+                SendPlayerInfoToUnity();
+            }).catch((message) => {
+                alert("❌ Failed to load Unity: " + message);
+            });
+        });
+    </script>
+</body>
+</html>
